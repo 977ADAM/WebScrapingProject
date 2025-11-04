@@ -1,0 +1,16 @@
+2025-11-02 21:55:50,138 - ad_parser - INFO - Запуск парсинга рекламных элементов...
+2025-11-02 21:55:50,138 - ad_parser - INFO - Начинаем обработку 1 валидных URL
+2025-11-02 21:55:50,138 - ad_parser - INFO - Начинаем парсинг: https://ria.ru
+2025-11-02 21:55:51,291 - ad_parser - INFO - WebDriver успешно инициализирован
+2025-11-02 21:55:51,291 - ad_parser - INFO - Загрузка страницы: https://ria.ru
+2025-11-02 21:55:56,380 - ad_parser - INFO - Страница успешно загружена: https://ria.ru
+2025-11-02 21:55:57,540 - ad_parser - INFO - WebDriver успешно инициализирован
+2025-11-02 21:55:57,550 - ad_parser - ERROR - Ошибка при обнаружении рекламы через Selenium: cannot access local variable 'result' where it is not associated with a value
+2025-11-02 21:55:57,551 - ad_parser - INFO - Парсинг завершен: https://ria.ru - найдено 0 рекламных элементов
+2025-11-02 21:55:59,756 - ad_parser - INFO - WebDriver закрыт
+2025-11-02 21:55:59,757 - ad_parser - INFO - Генерация отчетов...
+2025-11-02 21:55:59,759 - ad_parser - INFO - JSON отчет сохранен: ad_report_20251102_215559.json
+2025-11-02 21:55:59,760 - ad_parser - INFO - Парсинг завершен!
+2025-11-02 21:55:59,760 - ad_parser - INFO - Успешно обработано: 1/1
+2025-11-02 21:55:59,760 - ad_parser - INFO - Всего найдено рекламных элементов: 0
+2025-11-02 21:55:59,761 - ad_parser - INFO - JSON отчет: ad_report_20251102_215559.json

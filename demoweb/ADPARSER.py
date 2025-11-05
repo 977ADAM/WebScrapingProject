@@ -1,4 +1,5 @@
 import os
+import time
 from logi import logger
 from datetime import datetime
 from demo import PageParser
@@ -57,8 +58,9 @@ class AdParser:
                 if d['element'] not in seen:
                     seen.add(d['element'])
                     selenium_ads.append(d)
-        
             
+            parser.screenshots()
+            time.sleep(100)
             result['ads'] = selenium_ads
             result['ads_count'] = len(selenium_ads)
             result['success'] = True

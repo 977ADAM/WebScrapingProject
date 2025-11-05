@@ -1,4 +1,6 @@
 import time
+import os
+from datetime import datetime
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
@@ -95,6 +97,7 @@ class PageParser:
                         
                         location = element.location
                         size = element.size
+                        
 
                         if size['height'] and size['width'] != 0:
                             result = [
@@ -120,10 +123,39 @@ class PageParser:
         
         return ads
     
+    def screenshots(self):
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        screenshots_dir = "screenshots"
+        if not os.path.exists(screenshots_dir):
+            os.makedirs(screenshots_dir)
+        try:
+            logger.info("Создание скриншотов элемента реклам")
+            elemints = self.elements()
+            overlaying_element = self.driver.find_element(By.CSS_SELECTOR, "div.widgets__b-slide")
+            self.driver.execute_script("arguments[0].style.visibility='hidden'", overlaying_element)
+            for element in elemints:
+                element.screenshot(f"{screenshots_dir}/screenshot{timestamp}.png")
+                time.sleep(2)
+                
+        except Exception as e:
+            logger.error(f"Ошибка при создании скриншота элемента: {e}")
+            
+    def elements(self):
+        try:
+            
+            for selector in self.config.AD_SELECTORS:
+                elements = self.driver.find_elements(By.CSS_SELECTOR, selector)
+                filter_elements = []
+                seen = set()
+                for d in elements:
+                    if d.id not in seen and (d.size['height'] and d.size['width'] != 0):
+                        seen.add(d.id)
+                        filter_elements.append(d)
 
-
-
-    
+            return filter_elements
+        
+        except Exception as e:
+            logger(f"Ошибка при обнаружении элемента: {e}")
     #Закрывание драйвера
     def close(self):
         """Закрытие браузера"""

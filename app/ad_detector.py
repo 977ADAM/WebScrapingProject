@@ -64,42 +64,7 @@ class AdDetector:
         
         return unique_ads
     
-    def detect_ads_with_selenium(self) -> List[Dict[str, Any]]:
-        """Обнаружение рекламы с использованием Selenium WebDriver"""
-        ads = []
-        try:
-            # Поиск по CSS селекторам через Selenium
-            for selector in self.config.AD_SELECTORS:
-                elements = self.import_driver.driver.find_elements(By.CSS_SELECTOR, selector)
-                for element in elements:
-                    try:
-                        location = element.location
-                        size = element.size
-            
-                        result = [
-                            {
-                        'tag': element.tag_name,
-                        'classes': element.get_attribute('class'),
-                        'id': element.get_attribute('id'),
-                        'location': location,
-                        'size': size,
-                        'is_displayed': element.is_displayed(),
-                        'text_preview': element.text[:100] if element.text else ''
-                        }]
-                    except Exception as e:
-                        logger.error(f"Ошибка извлечения данных элемента: {e}")
-                        return {}
-                    
-                ads.append(result)
-        
-            
-            # Поиск по размерам
-            ads.extend(self._detect_by_element_size())
-            
-        except Exception as e:
-            logger.error(f"Ошибка при обнаружении рекламы через Selenium: {e}")
-        
-        return ads
+
     
     def _extract_selenium_ad_data(self, element: WebElement, detection_method: str) -> Dict[str, Any]:
         """Извлечение данных из Selenium элемента"""

@@ -26,7 +26,7 @@ class AdParserConfig:
     def __post_init__(self):
         if self.AD_SELECTORS is None:
             self.AD_SELECTORS = [
-                "//div[@class='banner__content']",
+                'div.banner__content'
             ]
         
         if self.AD_NETWORKS is None:

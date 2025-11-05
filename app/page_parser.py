@@ -7,7 +7,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 from bs4 import BeautifulSoup
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 import urllib3
 from urllib3.exceptions import HTTPError
 
@@ -76,6 +76,40 @@ class PageParser:
             logger.error(f"Ошибка загрузки страницы {url}: {e}")
             return False
     
+    def detect_ads_with_selenium(self) -> List[Dict[str, Any]]:
+        """Обнаружение рекламы с использованием Selenium WebDriver"""
+        ads = []
+        try:
+            # Поиск по CSS селекторам через Selenium
+            for selector in self.config.AD_SELECTORS:
+                print(selector)
+                elements = self.driver.find_elements(By.XPATH, selector)
+                for element in elements:
+                    print(element)
+                    try:
+                        location = element.location
+                        size = element.size
+            
+                        result = [
+                            {
+                        'tag': element.tag_name,
+                        'classes': element.get_attribute('class'),
+                        'id': element.get_attribute('id'),
+                        'location': location,
+                        'size': size,
+                        'is_displayed': element.is_displayed(),
+                        'text_preview': element.text[:100] if element.text else ''
+                        }]
+                        ads += result
+                    except Exception as e:
+                        logger.error(f"Ошибка извлечения данных элемента: {e}")
+                        return {}
+            
+        except Exception as e:
+            logger.error(f"Ошибка при обнаружении рекламы через Selenium: {e}")
+        
+        return ads
+
     def execute_script(self, script: str) -> Any:
         """Выполнение JavaScript на странице"""
         try:

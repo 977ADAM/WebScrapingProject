@@ -4,18 +4,15 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+from logi import logger
+from CONFIG import AdParserConfig
 
 
 class PageParser:
-    def __init__(self):
-        chrome_options = Options()
-        chrome_options.add_argument("--headless")
-        chrome_options.add_argument("--window-size=1920,1080")
-        chrome_options.add_argument("--no-sandbox")
-        chrome_options.add_argument("--disable-dev-shm-usage")
-        chrome_options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
-        self.driver = webdriver.Chrome(options=chrome_options)
-        
+    def __init__(self, config):
+        self.config = config or AdParserConfig
+        self.driver = None
+        self.setup_driver()
 
         self.common_ad_sizes = {
             (300, 250),
@@ -36,87 +33,106 @@ class PageParser:
             (1380, 120),
             (1380, 105),
         }
-    
+    #Инициализация драйвера
+    def setup_driver(self):
+        """Настройка WebDriver"""
+        try:
+            chrome_options = Options()
+            
+            if self.config.HEADLESS:
+                chrome_options.add_argument("--headless")
+            
+            chrome_options.add_argument(f"--window-size={self.config.WINDOW_SIZE[0]},{self.config.WINDOW_SIZE[1]}")
+            chrome_options.add_argument("--no-sandbox")
+            chrome_options.add_argument("--disable-dev-shm-usage")
+            chrome_options.add_argument("--disable-gpu")
+            chrome_options.add_argument("--disable-images")  # Ускоряет загрузку
+            chrome_options.add_argument("--disable-javascript")  # Можно включить позже для JS
+            chrome_options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+            
+            # Базовые настройки для избежания детектации
+            chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+            chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+            chrome_options.add_experimental_option('useAutomationExtension', False)
+            
+            
+            self.driver = webdriver.Chrome(options=chrome_options)
+            
+            # Устанавливаем таймауты
+            self.driver.set_page_load_timeout(self.config.PAGE_LOAD_TIMEOUT)
+            self.driver.set_script_timeout(self.config.SCRIPT_TIMEOUT)
+            
+            logger.info("WebDriver успешно инициализирован")
+            
+        except Exception as e:
+            logger.error(f"Ошибка инициализации WebDriver: {e}")
+            raise
+    #Загрузка страницы с поддержкой JavaScript
+    def load_page(self, url) -> bool:
+        try:
+            logger.info(f"Загрузка страницы: {url}")
+            self.driver.get(url)
+            WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located((By.TAG_NAME, "body"))
+            )
+            time.sleep(3)
+            logger.info(f"Страница успешно загружена: {url}")
+            return True
+        except Exception as e:
+            logger.error(f"Ошибка загрузки страницы {url}: {e}")
+            return False
+    #Обнаруживание рекламы на сайте
+    def detect_ads(self):
+        ads = []
+        try:
+            for selector in self.config.AD_SELECTORS:
 
-    def load_page(self, url, timeout=10):
-        """Загрузка страницы с ожиданием полной инициализации"""
-        self.driver.get(url)
-        time.sleep(20)
-        WebDriverWait(self.driver, timeout).until(
-            EC.presence_of_element_located((By.TAG_NAME, "body"))
-        )
+                elements = self.driver.find_elements(By.CSS_SELECTOR, selector)
 
-
-    def scroll(self):
-        start_position = 0
-        page_height = self.driver.execute_script("return document.body.scrollHeight")
-
-        while start_position < page_height:
-            # Прокручиваем небольшими шагами по 100 пикселей
-            start_position += 200
-            self.driver.execute_script(f"window.scrollTo(0, {start_position});")
-            time.sleep(1)  # Задержка для плавности
-            # Обновляем высоту страницы на случай динамической подгрузки
-            page_height = self.driver.execute_script("return document.body.scrollHeight")
-
-
-    def detect_ad_elements(self):
-        """Обнаружение элементов с рекламными размерами"""
-        ad_elements = []
-        elements = self.driver.find_elements(By.CSS_SELECTOR, 'div.banner')        
-        for element in elements:
-                try:
-                    size = (element.size['width'], element.size['height'])
-                    if size in self.common_ad_sizes:
+                for element in elements:
+                    
+                    try:
                         
-                        ad_elements.append({
-                            'element': element,
-                            'size': size,
+                        location = element.location
+                        size = element.size
+
+                        if size['height'] and size['width'] != 0:
+                            result = [
+                                {
+                            'element': element.id,
                             'tag': element.tag_name,
-                            'location': element.location,
-                            'tag_name': element.tag_name,
-                            'text': element.text[:100] + "..." if len(element.text) > 100 else element.text,
-                            'classes': element.get_attribute("class"),
-                            'id': element.get_attribute("id"),
-                            'src': element.get_attribute("src"),
-                            'href': element.get_attribute("href")
-                        })
-                except Exception:
-                    continue
-        return ad_elements
+                            'classes': element.get_attribute('class'),
+                            'id': element.get_attribute('id'),
+                            'location': location,
+                            'size': size,
+                            'is_displayed': element.is_displayed()
+                            }]
+
+                        
+                    except Exception as e:
+                        logger.error(f"Ошибка извлечения данных элемента: {e}")
+                        return {}
+                    
+                    ads.extend(result)
+                
+        except Exception as e:
+            logger.error(f"Ошибка при обнаружении рекламы: {e}")
+        
+        return ads
     
 
-    def analyze_page(self, url):
-        """Полный анализ страницы"""
-        self.load_page(url)
-        self.scroll()
-        ads = self.detect_ad_elements()
-        return {
-            'url': url,
-            'ads_count': len(ads),
-            'ad_elements': ads
-        }
 
 
+    
+    #Закрывание драйвера
     def close(self):
         """Закрытие браузера"""
-        self.driver.quit()
+        if self.driver:
+            self.driver.quit()
+            logger.info("WebDriver закрыт")
 
-
-    def run(self):
-        
-        parser = PageParser()
-        try:
-            result = parser.analyze_page("https://ria.ru/")
-            
-            print(f"Найдено рекламных элементов: {result['ads_count']}")
-            for ad in result['ad_elements']:
-                print(f"Размер: {ad['size']}")
-                print(f"Тег: {ad['tag']}")
-                print(f"Местоположение: {ad['location']}")
-                print(f"Содержание блока: {ad['text']}")
-
-                print('-' * 40)
-
-        finally:
-            parser.close()
+    def __enter__(self):
+        return self
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()

@@ -65,9 +65,9 @@ class AdParser:
                 return result
             
             # Обнаружение рекламы через Selenium
-            detector = AdDetector(self.config)
 
-            selenium_ads = detector.detect_ads_with_selenium()
+
+            selenium_ads = parser.detect_ads_with_selenium()
             print(selenium_ads)
             # Объединение результатов
             all_ads = selenium_ads

@@ -3,7 +3,6 @@ import time
 from logi import logger
 from datetime import datetime
 from demo import PageParser
-from ADDETECTOR import AdDetector
 import json
 
 class AdParser:
@@ -60,7 +59,9 @@ class AdParser:
                     selenium_ads.append(d)
             
             parser.screenshots()
-            time.sleep(100)
+            parser.screenshot_full_page()
+            
+
             result['ads'] = selenium_ads
             result['ads_count'] = len(selenium_ads)
             result['success'] = True

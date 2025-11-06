@@ -1,7 +1,8 @@
 import time
 import os
-from datetime import datetime
+from PIL import Image, ImageDraw
 from selenium import webdriver
+from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support import expected_conditions as EC
@@ -122,24 +123,25 @@ class PageParser:
             logger.error(f"Ошибка при обнаружении рекламы: {e}")
         
         return ads
-    
+    #Создпние скриншота рекламных баннеров
     def screenshots(self):
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         screenshots_dir = "screenshots"
         if not os.path.exists(screenshots_dir):
             os.makedirs(screenshots_dir)
         try:
-            logger.info("Создание скриншотов элемента реклам")
+            logger.info("Создание скриншотов реклам")
             elemints = self.elements()
-            overlaying_element = self.driver.find_element(By.CSS_SELECTOR, "div.widgets__b-slide")
-            self.driver.execute_script("arguments[0].style.visibility='hidden'", overlaying_element)
+            try:
+                overlaying_element = self.driver.find_element(By.CSS_SELECTOR, "div.widgets__b-slide")
+                self.driver.execute_script("arguments[0].style.visibility='hidden'", overlaying_element)
+            except NoSuchElementException:
+                logger.info("Нижний виджет отсутствует")
             for element in elemints:
-                element.screenshot(f"{screenshots_dir}/screenshot{timestamp}.png")
+                element.screenshot(f"{screenshots_dir}/screenshot{element.id}.png")
                 time.sleep(2)
-                
         except Exception as e:
             logger.error(f"Ошибка при создании скриншота элемента: {e}")
-            
+    #Доп. функция для обнаружение реклам для скриншота
     def elements(self):
         try:
             
@@ -156,15 +158,52 @@ class PageParser:
         
         except Exception as e:
             logger(f"Ошибка при обнаружении элемента: {e}")
-    #Закрывание драйвера
+
+    def capture_screenshot_full_page(self):
+        """Захват скриншота всей страницы"""
+        output_path = f"screenshots/full_screenshot{self.driver.name}.png"
+        try:
+            logger.info("Создание скриншота всей страницы")
+            total_height = self.driver.execute_script("return document.body.scrollHeight")
+            total_widtht = self.driver.execute_script("return document.body.scrollWidth")
+            self.driver.set_window_size(total_widtht, total_height+100)
+            self.driver.save_screenshot(output_path)
+        except Exception as e:
+            logger.error(f"Ошибка при захвате скриншота всей страницы: {e}")
+        return output_path
+
+    def annotate_screenshot_full_page(self, capture_screenshot_full_page):
+        """Aннотирование скриншота всей страницы"""
+        with Image.open(capture_screenshot_full_page) as amg:
+            draw = ImageDraw.Draw(amg)
+            elements = self.elements()
+            for element in elements:
+                draw.rectangle([
+                    element.location['x'],
+                    element.location['y'],
+                    element.location['x'] + element.size['width'],
+                    element.location['y'] + element.size['height']
+                    ], outline="red", width=3
+                )
+                draw.text(
+                    (element.location['x'] + 5, element.location['y'] + 5),
+                    f"AD, {element.size['width']}, {element.size['height']}",
+                    fill="red"
+                )
+            
+            amg.save("screenshots/annotated_full_screenshot.png")
+
+    def screenshot_full_page(self):
+        """Запуск для скриншота всей страницы и аннотирования ее"""
+        screenshot_path = self.capture_screenshot_full_page()
+        self.annotate_screenshot_full_page(screenshot_path)
+
     def close(self):
         """Закрытие браузера"""
         if self.driver:
             self.driver.quit()
             logger.info("WebDriver закрыт")
-
     def __enter__(self):
         return self
-    
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()

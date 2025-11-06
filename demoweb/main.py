@@ -13,13 +13,14 @@ from screenshot import ScreenshotManager
 def main():
     BASE_URL = ["https://ria.ru"]
 
-    config = AdParserConfig(HEADLESS=False, PAGE_LOAD_TIMEOUT=20)
+    config = AdParserConfig(HEADLESS=True, PAGE_LOAD_TIMEOUT=20)
 
     parser = AdParser(config)
 
     try:
         logger.info("Запуск парсинга рекламных элементов...")
         results = parser.parse_urls(BASE_URL)
+        
         logger.info("Генерация отчета JSON")
         json_report = parser.generate_report()
 

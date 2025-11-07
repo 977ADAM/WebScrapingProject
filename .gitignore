@@ -5,7 +5,7 @@
 # Временные файлы
 *.tmp
 *.temp
-
+ignored/
 # Python
 *__pycache__/
 *.py[cod]

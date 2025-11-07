@@ -4,7 +4,7 @@ import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 
-from logi import logger
+from LOGI import logger
 from ADPARSER import AdParser
 from CONFIG import AdParserConfig
 

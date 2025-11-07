@@ -1,8 +1,8 @@
 import os
 import time
-from logi import logger
+from LOGI import logger
 from datetime import datetime
-from demo import PageParser
+from PAGEPARSER import PageParser
 import json
 
 class AdParser:

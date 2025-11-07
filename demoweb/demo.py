@@ -203,7 +203,7 @@ class PageParser:
 
     def click_elements(self):
         main_window = self.driver.current_window_handle
-        
+        ads_click = []
         elements = self.elements()
 
         for element in elements:
@@ -216,20 +216,22 @@ class PageParser:
                 new_window = [window for window in self.driver.window_handles if window != main_window][0]
                 self.driver.switch_to.window(new_window)
                 time.sleep(6)
-                ad_data = {
+                ad_data = [{
+                    "id": element.id,
                     "current_url": self.driver.current_url,
                     "title": self.driver.title,
                     "window_handle": new_window
-                }
-                logger.info(ad_data)
+                }]
 
                 self.driver.close()
                 self.driver.switch_to.window(main_window)
             except Exception as e:
-                logger.info(f"Ошибка при клике: {e}")
+                logger.info(f"Не удолось кликнуть")
                 continue
-            
 
+            ads_click.extend(ad_data)
+
+        return ads_click
 
     def close(self):
         """Закрытие браузера"""

@@ -40,6 +40,7 @@ class AdParser:
             'success': False,
             'ads_count': 0,
             'ads': [],
+            'ads_click': [],
         }
 
         
@@ -61,9 +62,9 @@ class AdParser:
 
             parser.screenshot_full_page()
             
-            parser.click_elements()
+            result_click_elements = parser.click_elements()
             
-
+            result['ads_click'] = result_click_elements
             result['ads'] = selenium_ads
             result['ads_count'] = len(selenium_ads)
             result['success'] = True

@@ -40,7 +40,6 @@ class AdParser:
             'success': False,
             'ads_count': 0,
             'ads': [],
-            'size': []
         }
 
         
@@ -59,7 +58,10 @@ class AdParser:
                     selenium_ads.append(d)
             
             parser.screenshots()
+
             parser.screenshot_full_page()
+            
+            parser.click_elements()
             
 
             result['ads'] = selenium_ads

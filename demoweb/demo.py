@@ -2,13 +2,15 @@ import time
 import os
 from PIL import Image, ImageDraw
 from selenium import webdriver
-from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.common.exceptions import NoSuchElementException, ElementClickInterceptedException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from logi import logger
 from CONFIG import AdParserConfig
+from fake_useragent import UserAgent
 
 
 class PageParser:
@@ -45,13 +47,14 @@ class PageParser:
             if self.config.HEADLESS:
                 chrome_options.add_argument("--headless")
             
-            chrome_options.add_argument(f"--window-size={self.config.WINDOW_SIZE[0]},{self.config.WINDOW_SIZE[1]}")
+            #chrome_options.add_argument(f"--window-size={self.config.WINDOW_SIZE[0]},{self.config.WINDOW_SIZE[1]}")
+            chrome_options.add_argument("--start-maximized")
             chrome_options.add_argument("--no-sandbox")
             chrome_options.add_argument("--disable-dev-shm-usage")
             chrome_options.add_argument("--disable-gpu")
             chrome_options.add_argument("--disable-images")  # Ускоряет загрузку
             chrome_options.add_argument("--disable-javascript")  # Можно включить позже для JS
-            chrome_options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+            chrome_options.add_argument(f"--user-agent={UserAgent().random}")
             
             # Базовые настройки для избежания детектации
             chrome_options.add_argument("--disable-blink-features=AutomationControlled")
@@ -197,6 +200,36 @@ class PageParser:
         """Запуск для скриншота всей страницы и аннотирования ее"""
         screenshot_path = self.capture_screenshot_full_page()
         self.annotate_screenshot_full_page(screenshot_path)
+
+    def click_elements(self):
+        main_window = self.driver.current_window_handle
+        
+        elements = self.elements()
+
+        for element in elements:
+            try:
+                ActionChains(self.driver).move_to_element(element).click().perform()
+
+                WebDriverWait(self.driver, 10).until(EC.number_of_windows_to_be(2))
+                
+
+                new_window = [window for window in self.driver.window_handles if window != main_window][0]
+                self.driver.switch_to.window(new_window)
+                time.sleep(6)
+                ad_data = {
+                    "current_url": self.driver.current_url,
+                    "title": self.driver.title,
+                    "window_handle": new_window
+                }
+                logger.info(ad_data)
+
+                self.driver.close()
+                self.driver.switch_to.window(main_window)
+            except Exception as e:
+                logger.info(f"Ошибка при клике: {e}")
+                continue
+            
+
 
     def close(self):
         """Закрытие браузера"""

@@ -7,13 +7,13 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from logi import logger
 from ADPARSER import AdParser
 from CONFIG import AdParserConfig
-from screenshot import ScreenshotManager
+
 
 
 def main():
     BASE_URL = ["https://ria.ru"]
 
-    config = AdParserConfig(HEADLESS=True, PAGE_LOAD_TIMEOUT=20)
+    config = AdParserConfig(HEADLESS=False, PAGE_LOAD_TIMEOUT=20)
 
     parser = AdParser(config)
 
@@ -23,9 +23,6 @@ def main():
         
         logger.info("Генерация отчета JSON")
         json_report = parser.generate_report()
-
-        #logger.info("Запуск создания скриншота и выделения...")
-        #screetshot.run_screen()
 
         successful = sum(1 for r in results if r.get('success'))
         total_ads = sum(r.get('ads_count', 0) for r in results)

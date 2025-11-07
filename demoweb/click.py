@@ -43,7 +43,7 @@ def handle_ad_interaction():
     try:
         # Ожидаем появления рекламного блока
         banners = WebDriverWait(driver, 10).until(
-            EC.presence_of_all_elements_located((By.CSS_SELECTOR, "div.banner__co ntent"))
+            EC.presence_of_all_elements_located((By.CSS_SELECTOR, "div.banner__content"))
         )
         time.sleep(3)
         for banner in banners:

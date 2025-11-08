@@ -48,8 +48,8 @@ class PageParser:
             if self.config.HEADLESS:
                 chrome_options.add_argument("--headless")
             
-            #chrome_options.add_argument(f"--window-size={self.config.WINDOW_SIZE[0]},{self.config.WINDOW_SIZE[1]}")
-            chrome_options.add_argument("--start-maximized")
+            chrome_options.add_argument(f"--window-size={self.config.WINDOW_SIZE[0]},{self.config.WINDOW_SIZE[1]}")
+            #chrome_options.add_argument("--start-maximized")
             chrome_options.add_argument("--no-sandbox")
             chrome_options.add_argument("--disable-dev-shm-usage")
             chrome_options.add_argument("--disable-gpu")
@@ -154,6 +154,7 @@ class PageParser:
             total_widtht = self.driver.execute_script("return document.body.scrollWidth")
             self.driver.set_window_size(total_widtht, total_height+100)
             self.driver.save_screenshot(output_path)
+            self.driver.set_window_size(self.config.WINDOW_SIZE[0],self.config.WINDOW_SIZE[1])
         except Exception as e:
             logger.error(f"Ошибка при захвате скриншота всей страницы: {e}")
         return output_path

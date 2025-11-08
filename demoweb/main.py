@@ -13,7 +13,7 @@ from CONFIG import AdParserConfig
 def main():
     BASE_URL = ["https://ria.ru"]
 
-    config = AdParserConfig(HEADLESS=False, PAGE_LOAD_TIMEOUT=20)
+    config = AdParserConfig(HEADLESS=True, PAGE_LOAD_TIMEOUT=20)
 
     parser = AdParser(config)
 

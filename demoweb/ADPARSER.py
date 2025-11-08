@@ -50,13 +50,7 @@ class AdParser:
                 result['error'] = 'Failed to load page'
                 return result
             
-            seen = set()
-            data = parser.detect_ads()
-            selenium_ads = []
-            for d in data:
-                if d['element'] not in seen:
-                    seen.add(d['element'])
-                    selenium_ads.append(d)
+            selenium_ads = parser.detect_ads()
             
             parser.screenshots()
 

@@ -39,7 +39,7 @@ class PageParser:
             (1380, 120),
             (1380, 105),
         }
-    #Инициализация драйвера
+
     def setup_driver(self):
         """Настройка WebDriver"""
         try:
@@ -74,7 +74,7 @@ class PageParser:
         except Exception as e:
             logger.error(f"Ошибка инициализации WebDriver: {e}")
             raise
-    #Загрузка страницы с поддержкой JavaScript
+
     def load_page(self, url) -> bool:
         try:
             logger.info(f"Загрузка страницы: {url}")
@@ -88,46 +88,29 @@ class PageParser:
         except Exception as e:
             logger.error(f"Ошибка загрузки страницы {url}: {e}")
             return False
-    #Обнаруживание рекламы на сайте
+
     def detect_ads(self):
-        ads = []
-        try:
-            for selector in self.config.AD_SELECTORS:
-
-                elements = self.driver.find_elements(By.CSS_SELECTOR, selector)
-
-                for element in elements:
-                    
-                    try:
-                        
-                        location = element.location
-                        size = element.size
-                        
-
-                        if size['height'] and size['width'] != 0:
-                            result = [
-                                {
-                            'element': element.id,
-                            'tag': element.tag_name,
-                            'classes': element.get_attribute('class'),
-                            'id': element.get_attribute('id'),
-                            'location': location,
-                            'size': size,
-                            'is_displayed': element.is_displayed()
-                            }]
-
-                        
-                    except Exception as e:
-                        logger.error(f"Ошибка извлечения данных элемента: {e}")
-                        return {}
-                    
-                    ads.extend(result)
+        elements = self.elements()
+        result = []
+        for element in elements:
+            try:
+                data = [{
+                    'element': element.id,
+                    'tag': element.tag_name,
+                    'classes': element.get_attribute('class'),
+                    'id': element.get_attribute('id'),
+                    'location': element.location,
+                    'size': element.size,
+                    'is_displayed': element.is_displayed()
+                    }]
                 
-        except Exception as e:
-            logger.error(f"Ошибка при обнаружении рекламы: {e}")
-        
-        return ads
-    #Создпние скриншота рекламных баннеров
+                result.extend(data)
+
+            except Exception as e:
+                logger.error(f"Не удолось извлеч данные с элемента {e}")
+
+        return result
+
     def screenshots(self):
         screenshots_dir = "screenshots"
         if not os.path.exists(screenshots_dir):
@@ -145,10 +128,9 @@ class PageParser:
                 time.sleep(2)
         except Exception as e:
             logger.error(f"Ошибка при создании скриншота элемента: {e}")
-    #Доп. функция для обнаружение реклам для скриншота
+
     def elements(self):
         try:
-            
             for selector in self.config.AD_SELECTORS:
                 elements = self.driver.find_elements(By.CSS_SELECTOR, selector)
                 filter_elements = []
@@ -211,7 +193,7 @@ class PageParser:
             try:
                 ActionChains(self.driver).move_to_element(element).click().perform()
 
-                WebDriverWait(self.driver, 10).until(EC.number_of_windows_to_be(2))
+                WebDriverWait(self.driver, 20).until(EC.number_of_windows_to_be(2))
                 
 
                 new_window = [window for window in self.driver.window_handles if window != main_window][0]
@@ -220,6 +202,8 @@ class PageParser:
                 current_url = self.driver.current_url
 
                 utm_data = self.extract_utm_params(current_url)
+
+                self.driver.save_screenshot(f"screenshots/{element.id}.png")
 
                 ad_data = [{
                     "id": element.id,
@@ -231,7 +215,7 @@ class PageParser:
                 self.driver.close()
                 self.driver.switch_to.window(main_window)
             except Exception as e:
-                logger.info(f"Не удолось кликнуть")
+                logger.error(f"Не удолось кликнуть: {e}")
                 continue
 
             ads_click.extend(ad_data)
@@ -240,12 +224,15 @@ class PageParser:
     
     def extract_utm_params(self, url):
         """Извлекает UTM-метки из URL"""
-        parsed_url = urlparse(url)
-        query_params = parse_qs(parsed_url.query)
-        utm_params = {}
-        for key, value in query_params.items():
-            if key.startswith('utm_'):
-                utm_params[key] = value[0]
+        try:
+            parsed_url = urlparse(url)
+            query_params = parse_qs(parsed_url.query)
+            utm_params = {}
+            for key, value in query_params.items():
+                if key.startswith('utm_'):
+                    utm_params[key] = value[0]
+        except Exception as e:
+            logger.error(f"Ошибка при извлечении UTM-метки: {e}")
         return utm_params
 
     def close(self):

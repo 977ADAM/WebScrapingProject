@@ -1,6 +1,7 @@
 import time
 import os
 from PIL import Image, ImageDraw
+from urllib.parse import urlparse, parse_qs
 from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common.exceptions import NoSuchElementException, ElementClickInterceptedException
@@ -216,11 +217,15 @@ class PageParser:
                 new_window = [window for window in self.driver.window_handles if window != main_window][0]
                 self.driver.switch_to.window(new_window)
                 time.sleep(6)
+                current_url = self.driver.current_url
+
+                utm_data = self.extract_utm_params(current_url)
+
                 ad_data = [{
                     "id": element.id,
-                    "current_url": self.driver.current_url,
+                    "current_url": current_url,
                     "title": self.driver.title,
-                    "window_handle": new_window
+                    "utm_params": utm_data
                 }]
 
                 self.driver.close()
@@ -232,6 +237,16 @@ class PageParser:
             ads_click.extend(ad_data)
 
         return ads_click
+    
+    def extract_utm_params(self, url):
+        """Извлекает UTM-метки из URL"""
+        parsed_url = urlparse(url)
+        query_params = parse_qs(parsed_url.query)
+        utm_params = {}
+        for key, value in query_params.items():
+            if key.startswith('utm_'):
+                utm_params[key] = value[0]
+        return utm_params
 
     def close(self):
         """Закрытие браузера"""

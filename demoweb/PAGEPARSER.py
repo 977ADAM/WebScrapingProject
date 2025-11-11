@@ -49,8 +49,8 @@ class PageParser:
                 chrome_options.add_argument("--headless")
             
             chrome_options.add_argument(f"--window-size={self.config.WINDOW_SIZE[0]},{self.config.WINDOW_SIZE[1]}")
-            #chrome_options.add_argument("--start-maximized")
             chrome_options.add_argument("--no-sandbox")
+            chrome_options.add_argument("--incognito")
             chrome_options.add_argument("--disable-dev-shm-usage")
             chrome_options.add_argument("--disable-gpu")
             chrome_options.add_argument("--disable-images")  # Ускоряет загрузку
@@ -150,9 +150,9 @@ class PageParser:
         output_path = f"screenshots/full_screenshot{self.driver.name}.png"
         try:
             logger.info("Создание скриншота всей страницы")
-            total_height = self.driver.execute_script("return document.body.scrollHeight")
-            total_widtht = self.driver.execute_script("return document.body.scrollWidth")
-            self.driver.set_window_size(total_widtht, total_height+100)
+            self.driver.execute_script("window.scrollTo(0, 0);")
+            total_height = self.driver.execute_script("return document.documentElement.scrollHeight")
+            self.driver.set_window_size(self.config.WINDOW_SIZE[0], total_height+100)
             self.driver.save_screenshot(output_path)
             self.driver.set_window_size(self.config.WINDOW_SIZE[0],self.config.WINDOW_SIZE[1])
         except Exception as e:

@@ -111,24 +111,6 @@ class PageParser:
 
         return result
 
-    def screenshots(self):
-        screenshots_dir = "screenshots"
-        if not os.path.exists(screenshots_dir):
-            os.makedirs(screenshots_dir)
-        try:
-            logger.info("Создание скриншотов реклам")
-            elemints = self.elements()
-            try:
-                overlaying_element = self.driver.find_element(By.CSS_SELECTOR, "div.widgets__b-slide")
-                self.driver.execute_script("arguments[0].style.visibility='hidden'", overlaying_element)
-            except NoSuchElementException:
-                logger.info("Нижний виджет отсутствует")
-            for element in elemints:
-                element.screenshot(f"{screenshots_dir}/screenshot{element.id}.png")
-                time.sleep(2)
-        except Exception as e:
-            logger.error(f"Ошибка при создании скриншота элемента: {e}")
-
     def elements(self):
         try:
             for selector in self.config.AD_SELECTORS:
@@ -145,9 +127,24 @@ class PageParser:
         except Exception as e:
             logger(f"Ошибка при обнаружении элемента: {e}")
 
-    def capture_screenshot_full_page(self):
+    def screenshots_elements(self, screenshots_dir):
+        try:
+            logger.info("Создание скриншотов реклам")
+            elemints = self.elements()
+            try:
+                overlaying_element = self.driver.find_element(By.CSS_SELECTOR, "div.widgets__b-slide")
+                self.driver.execute_script("arguments[0].style.visibility='hidden'", overlaying_element)
+            except NoSuchElementException:
+                logger.info("Нижний виджет отсутствует")
+            for element in elemints:
+                element.screenshot(f"{screenshots_dir}/screenshot{element.id}.png")
+                time.sleep(2)
+        except Exception as e:
+            logger.error(f"Ошибка при создании скриншота элемента: {e}")
+
+    def capture_screenshot_full_page(self, screenshots_dir):
         """Захват скриншота всей страницы"""
-        output_path = f"screenshots/full_screenshot{self.driver.name}.png"
+        output_path = f"{screenshots_dir}/full_screenshot{self.driver.name}.png"
         try:
             logger.info("Создание скриншота всей страницы")
             self.driver.execute_script("window.scrollTo(0, 0);")
@@ -159,31 +156,42 @@ class PageParser:
             logger.error(f"Ошибка при захвате скриншота всей страницы: {e}")
         return output_path
 
-    def annotate_screenshot_full_page(self, capture_screenshot_full_page):
+    def annotate_screenshot_full_page(self, capture_screenshot_full_page, screenshots_dir):
         """Aннотирование скриншота всей страницы"""
-        with Image.open(capture_screenshot_full_page) as amg:
-            draw = ImageDraw.Draw(amg)
-            elements = self.elements()
-            for element in elements:
-                draw.rectangle([
-                    element.location['x'],
-                    element.location['y'],
-                    element.location['x'] + element.size['width'],
-                    element.location['y'] + element.size['height']
-                    ], outline="red", width=3
-                )
-                draw.text(
-                    (element.location['x'] + 5, element.location['y'] + 5),
-                    f"AD, {element.size['width']}, {element.size['height']}",
-                    fill="red"
-                )
-            
-            amg.save("screenshots/annotated_full_screenshot.png")
+        try:
+            logger.info("Aннотирование скриншота всей страницы")
+            with Image.open(capture_screenshot_full_page) as amg:
+                draw = ImageDraw.Draw(amg)
+                elements = self.elements()
+                for element in elements:
+                    draw.rectangle([
+                        element.location['x'],
+                        element.location['y'],
+                        element.location['x'] + element.size['width'],
+                        element.location['y'] + element.size['height']
+                        ], outline="red", width=3
+                    )
+                    draw.text(
+                        (element.location['x'] + 5, element.location['y'] + 5),
+                        f"AD, {element.size['width']}, {element.size['height']}",
+                        fill="red"
+                    )
+                
+                amg.save(f"{screenshots_dir}/annotated_full_screenshot.png")
 
-    def screenshot_full_page(self):
+        except Exception as e:
+            logger.error(f"Ошибка при аннотировании скриншота всей страницы: {e}")
+
+    def screenshots(self):
         """Запуск для скриншота всей страницы и аннотирования ее"""
-        screenshot_path = self.capture_screenshot_full_page()
-        self.annotate_screenshot_full_page(screenshot_path)
+        script_path = os.path.abspath(__file__)
+        dirname = os.path.dirname(script_path)
+        screenshots_dir = os.path.join(dirname, "screenshots")
+        os.makedirs(screenshots_dir, exist_ok=True)
+
+        self.screenshots_elements(screenshots_dir)
+        screenshot_path = self.capture_screenshot_full_page(screenshots_dir)
+        self.annotate_screenshot_full_page(screenshot_path, screenshots_dir)
 
     def click_elements(self):
         main_window = self.driver.current_window_handle

@@ -51,10 +51,8 @@ class AdParser:
                 return result
             
             selenium_ads = parser.detect_ads()
-            
-            parser.screenshots()
 
-            parser.screenshot_full_page()
+            parser.screenshots()
             
             result_click_elements = parser.click_elements()
             

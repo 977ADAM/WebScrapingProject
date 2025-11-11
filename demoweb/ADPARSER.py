@@ -70,10 +70,11 @@ class AdParser:
         if not self.results:
             logger.warning("Нет данных для отчета")
             return ""
-        
-        report_dir = "reports"
-        if not os.path.exists(report_dir):
-            os.makedirs(report_dir)
+
+        script_path = os.path.abspath(__file__)
+        dirname = os.path.dirname(script_path)
+        report_dir = os.path.join(dirname, "reports")
+        os.makedirs(report_dir, exist_ok=True)
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         return self._generate_json_report(timestamp, report_dir)
@@ -93,3 +94,4 @@ class AdParser:
         
         logger.info(f"JSON отчет сохранен: {filename}")
         return filename
+     

@@ -7,12 +7,11 @@ import os
 
 def setup_logger(name = "ad_parser"):
     """Настройка логгера для приложения"""
-    
-    # Создаем папку для логов если ее нет
-    log_dir = "logs"
-    if not os.path.exists(log_dir):
-        os.makedirs(log_dir)
-    
+    script_path = os.path.abspath(__file__)
+    dirname = os.path.dirname(script_path)
+    log_dir = os.path.join(dirname, "logs")
+    os.makedirs(log_dir, exist_ok=True)
+
     logger = logging.getLogger(name)
     logger.setLevel(logging.INFO)
     

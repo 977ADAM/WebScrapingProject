@@ -52,11 +52,11 @@ class AdParser:
             
             selenium_ads = parser.detect_ads()
 
-            parser.screenshots()
+            #parser.screenshots()
             
-            result_click_elements = parser.click_elements()
+            #result_click_elements = parser.click_elements()
             
-            result['ads_click'] = result_click_elements
+            #result['ads_click'] = result_click_elements
             result['ads'] = selenium_ads
             result['ads_count'] = len(selenium_ads)
             result['success'] = True

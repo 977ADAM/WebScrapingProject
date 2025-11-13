@@ -18,7 +18,7 @@ def main():
                 "https://1prime.ru/"
                 ]
 
-    config = AdParserConfig(HEADLESS=False)
+    config = AdParserConfig(HEADLESS=True)
 
     parser = AdParser(config)
 

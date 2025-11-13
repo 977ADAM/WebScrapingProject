@@ -20,25 +20,12 @@ class PageParser:
         self.driver = None
         self.setup_driver()
 
-        self.common_ad_sizes = {
-            (300, 250),
-            (336, 280), 
-            (728, 90),  
-            (300, 600), 
-            (300, 599), 
-            (300, 598), 
-            (320, 100),  
-            (320, 50),   
-            (970, 90),    
-            (250, 250),  
-            (200, 200),   
-            (120, 600),
-            (160, 600),   
-            (1440, 140),
-            (1380, 250),
-            (1380, 120),
-            (1380, 105),
-        }
+        self.AD_SELECTORS = [
+                "//*[contains(@class, 'yandex_rtb_')]",
+                "//*[contains(@id, 'yandex_rtb_')]",
+                "//*[contains(@id, 'adfox_')]",
+                "//*[contains(@id, 'begun_block_')]",
+            ]
 
     def setup_driver(self):
         """Настройка WebDriver"""
@@ -79,7 +66,7 @@ class PageParser:
         try:
             logger.info(f"Загрузка страницы: {url}")
             self.driver.get(url)
-            WebDriverWait(self.driver, 10).until(
+            WebDriverWait(self.driver, 20).until(
                 EC.presence_of_element_located((By.TAG_NAME, "body"))
             )
             time.sleep(3)
@@ -112,15 +99,17 @@ class PageParser:
         return result
 
     def elements(self):
+        filter_elements = []
+        seen = set()
         try:
-            for selector in self.config.AD_SELECTORS:
-                elements = self.driver.find_elements(By.CSS_SELECTOR, selector)
-                filter_elements = []
-                seen = set()
-                for d in elements:
-                    if d.id not in seen and (d.size['height'] and d.size['width'] != 0):
-                        seen.add(d.id)
-                        filter_elements.append(d)
+            for selector in self.AD_SELECTORS:
+
+                elements = self.driver.find_elements(By.XPATH, selector)
+                
+                for element in elements:
+                    if element.id not in seen and element.is_displayed():
+                        seen.add(element.id)
+                        filter_elements.append(element)
 
             return filter_elements
         
@@ -202,6 +191,7 @@ class PageParser:
 
         for element in elements:
             try:
+                time.sleep(3)
                 try:
                     overlaying_element = self.driver.find_element(By.CSS_SELECTOR, "div.widgets__b-slide")
                     self.driver.execute_script("arguments[0].style.visibility='hidden'", overlaying_element)
@@ -214,7 +204,7 @@ class PageParser:
 
                 if pysh.is_displayed():
                     ActionChains(self.driver).click(pysh).perform()
-                    time.sleep(10)                
+                    time.sleep(3)                
 
                 ActionChains(self.driver).move_to_element_with_offset(element, -20, -10).click().perform()
 

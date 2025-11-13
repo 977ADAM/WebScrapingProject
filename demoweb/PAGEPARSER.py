@@ -207,9 +207,17 @@ class PageParser:
                     self.driver.execute_script("arguments[0].style.visibility='hidden'", overlaying_element)
                 except NoSuchElementException:
                     logger.info("Нижний виджет отсутствует")
-                time.sleep(3)
+                try:
+                    pysh = self.driver.find_element(By.XPATH, "//div[@class='modal__close']")
+                except NoSuchElementException:
+                    pass
+
+                if pysh.is_displayed():
+                    ActionChains(self.driver).click(pysh).perform()
+                    time.sleep(10)                
+
                 ActionChains(self.driver).move_to_element_with_offset(element, -20, -10).click().perform()
-                time.sleep(3)
+
                 WebDriverWait(self.driver, 15).until(EC.number_of_windows_to_be(2))
                 
                 new_window = [window for window in self.driver.window_handles if window != main_window][0]

@@ -11,9 +11,14 @@ from CONFIG import AdParserConfig
 
 
 def main():
-    BASE_URL = ["https://ria.ru"]
+    BASE_URL = ["https://ria.ru",
+                "https://tass.ru/",
+                "https://secretmag.ru/",
+                "https://www.m24.ru/",
+                "https://1prime.ru/"
+                ]
 
-    config = AdParserConfig(HEADLESS=True, PAGE_LOAD_TIMEOUT=20)
+    config = AdParserConfig(HEADLESS=False)
 
     parser = AdParser(config)
 

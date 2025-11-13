@@ -136,6 +136,8 @@ class PageParser:
                 self.driver.execute_script("arguments[0].style.visibility='hidden'", overlaying_element)
             except NoSuchElementException:
                 logger.info("Нижний виджет отсутствует")
+
+            
             for element in elemints:
                 element.screenshot(f"{screenshots_dir}/screenshot{element.id}.png")
                 time.sleep(2)
@@ -200,14 +202,20 @@ class PageParser:
 
         for element in elements:
             try:
-                ActionChains(self.driver).move_to_element(element).click().perform()
-
-                WebDriverWait(self.driver, 20).until(EC.number_of_windows_to_be(2))
+                try:
+                    overlaying_element = self.driver.find_element(By.CSS_SELECTOR, "div.widgets__b-slide")
+                    self.driver.execute_script("arguments[0].style.visibility='hidden'", overlaying_element)
+                except NoSuchElementException:
+                    logger.info("Нижний виджет отсутствует")
+                time.sleep(3)
+                ActionChains(self.driver).move_to_element_with_offset(element, -20, -10).click().perform()
+                time.sleep(3)
+                WebDriverWait(self.driver, 15).until(EC.number_of_windows_to_be(2))
                 
-
                 new_window = [window for window in self.driver.window_handles if window != main_window][0]
+
                 self.driver.switch_to.window(new_window)
-                time.sleep(6)
+
                 current_url = self.driver.current_url
 
                 utm_data = self.extract_utm_params(current_url)

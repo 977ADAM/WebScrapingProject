@@ -7,8 +7,8 @@ class AdParserConfig:
     # Настройки браузера
     HEADLESS: bool = True
     WINDOW_SIZE: Tuple[int, int] = (1920, 1080)
-    PAGE_LOAD_TIMEOUT: int = 30
-    SCRIPT_TIMEOUT: int = 30
+    PAGE_LOAD_TIMEOUT: int = 10
+    SCRIPT_TIMEOUT: int = 10
     
     # Настройки обнаружения рекламы
     AD_SELECTORS: List[str] = None

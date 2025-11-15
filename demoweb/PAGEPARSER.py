@@ -208,8 +208,6 @@ class PageParser:
 
                 utm_data = self.extract_utm_params(current_url)
 
-                self.driver.save_screenshot(f"screenshots/{element.id}.png")
-
                 ad_data = [{
                     "id": element.id,
                     "current_url": current_url,

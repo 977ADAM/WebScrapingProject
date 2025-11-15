@@ -31,9 +31,7 @@ class AdParser:
         return results
     #Парсинг одной ссылки.
     def parse_single_url(self, url):
-
         logger.info(f"Начинаем парсинг: {url}")
-        
         result = {
             'url': url,
             'timestamp': datetime.now().isoformat(),
@@ -42,18 +40,13 @@ class AdParser:
             'ads': [],
             'ads_click': [],
         }
-
-        
-
         with PageParser(self.config) as parser:
             if not parser.load_page(url):
                 result['error'] = 'Failed to load page'
                 return result
             
             selenium_ads = parser.detect_ads()
-
             parser.screenshots()
-            
             result_click_elements = parser.click_elements()
             
             result['ads_click'] = result_click_elements

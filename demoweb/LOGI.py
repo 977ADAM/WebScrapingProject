@@ -15,7 +15,7 @@ def setup_logger(name = "ad_parser"):
     logger = logging.getLogger(name)
     logger.setLevel(logging.INFO)
     
-    # Форматтер
+
     formatter = logging.Formatter(
         '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     )
@@ -33,7 +33,7 @@ def setup_logger(name = "ad_parser"):
     
     # Обработчик для файла
     file_handler = logging.FileHandler(
-        f"{log_dir}/ad_parser_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+        f"{log_dir}/ad_parser.log"
     )
     file_handler.setLevel(logging.DEBUG)
     file_handler.setFormatter(formatter)

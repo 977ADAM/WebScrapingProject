@@ -21,10 +21,10 @@ class PageParser:
         self.setup_driver()
 
         self.AD_SELECTORS = [
-                "//*[contains(@class, 'yandex_rtb_')]",
-                "//*[contains(@id, 'yandex_rtb_')]",
-                "//*[contains(@id, 'adfox_')]",
-                "//*[contains(@id, 'begun_block_')]",
+                "//div[contains(@class, 'yandex_rtb_')]",
+                "//div[contains(@id, 'yandex_rtb_')]",
+                "//div[contains(@id, 'adfox_')]",
+                "//div[contains(@id, 'begun_block_')]"
             ]
 
     def setup_driver(self):
@@ -40,8 +40,6 @@ class PageParser:
             chrome_options.add_argument("--incognito")
             chrome_options.add_argument("--disable-dev-shm-usage")
             chrome_options.add_argument("--disable-gpu")
-            chrome_options.add_argument("--disable-images")  # Ускоряет загрузку
-            chrome_options.add_argument("--disable-javascript")  # Можно включить позже для JS
             chrome_options.add_argument(f"--user-agent={UserAgent().random}")
             
             # Базовые настройки для избежания детектации
@@ -91,7 +89,7 @@ class PageParser:
                     'is_displayed': element.is_displayed()
                     }]
                 
-                result.extend(data)
+                result.append(data)
 
             except Exception as e:
                 logger.error(f"Не удолось извлеч данные с элемента {e}")
@@ -103,7 +101,7 @@ class PageParser:
         seen = set()
         try:
             for selector in self.AD_SELECTORS:
-
+                
                 elements = self.driver.find_elements(By.XPATH, selector)
                 
                 for element in elements:
@@ -114,7 +112,7 @@ class PageParser:
             return filter_elements
         
         except Exception as e:
-            logger(f"Ошибка при обнаружении элемента: {e}")
+            logger.error(f"Ошибка при обнаружении элемента: {e}")
 
     def screenshots_elements(self, screenshots_dir):
         try:
@@ -180,7 +178,7 @@ class PageParser:
         screenshots_dir = os.path.join(dirname, "screenshots")
         os.makedirs(screenshots_dir, exist_ok=True)
 
-        self.screenshots_elements(screenshots_dir)
+        #self.screenshots_elements(screenshots_dir)
         screenshot_path = self.capture_screenshot_full_page(screenshots_dir)
         self.annotate_screenshot_full_page(screenshot_path, screenshots_dir)
 

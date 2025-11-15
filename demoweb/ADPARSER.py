@@ -52,11 +52,11 @@ class AdParser:
             
             selenium_ads = parser.detect_ads()
 
-            #parser.screenshots()
+            parser.screenshots()
             
-            #result_click_elements = parser.click_elements()
+            result_click_elements = parser.click_elements()
             
-            #result['ads_click'] = result_click_elements
+            result['ads_click'] = result_click_elements
             result['ads'] = selenium_ads
             result['ads_count'] = len(selenium_ads)
             result['success'] = True
@@ -81,7 +81,7 @@ class AdParser:
     #Отчет в JSON формате
     def _generate_json_report(self, timestamp, report_dir):
         """Генерация JSON отчета"""
-        filename = f"{report_dir}/ad_report_{timestamp}.json"
+        filename = f"{report_dir}/ad_report.json"
         
         report_data = {
             'generated_at': datetime.now().isoformat(),

@@ -93,3 +93,4 @@ class AdParser:
         logger.info(f"JSON отчет сохранен: {filename}")
         return filename
      
+     

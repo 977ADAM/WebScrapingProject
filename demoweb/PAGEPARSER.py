@@ -1,10 +1,11 @@
 import time
 import os
+import pickle
 from PIL import Image, ImageDraw
 from urllib.parse import urlparse, parse_qs
 from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
-from selenium.common.exceptions import NoSuchElementException, ElementClickInterceptedException, TimeoutException
+from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support import expected_conditions as EC
@@ -90,6 +91,28 @@ class PageParser:
             time.sleep(0.7)
         
         self.driver.execute_script("window.scrollTo(0, 0);")
+
+    def get_cookies(self):
+        """Получаем cookies"""
+        cookies_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cookies")
+        os.makedirs(cookies_dir, exist_ok=True)
+
+        cookies = self.driver.get_cookies()
+        logger.info("Получаем cookies")
+        pickle.dump(cookies, open(f"{cookies_dir}/cookies.pkl", "wb"))
+
+    def add_cookies(self):
+        cookies_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cookies")
+        os.makedirs(cookies_dir, exist_ok=True)
+
+        self.driver.delete_all_cookies()
+
+        cookies = pickle.load(open(f"{cookies_dir}/cookies.pkl", "rb"))
+
+        for cookie in cookies:
+            self.driver.add_cookie(cookie)
+
+        self.driver.refresh()
 
     def elements(self):
         filter_elements = []
@@ -232,7 +255,7 @@ class PageParser:
 
                 self.driver.close()
                 self.driver.switch_to.window(main_window)
-                
+
             except TimeoutException as e:
                 logger.error(f"Страница {i} не рагрузилась: {e}")
                 continue

@@ -1,14 +1,10 @@
 import sys
 import os
-
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
-
 from LOGI import logger
 from ADPARSER import AdParser
 from CONFIG import AdParserConfig
 
-
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 def main():
     BASE_URL = ["https://www.m24.ru/"]

@@ -3,17 +3,20 @@ import time
 from LOGI import logger
 from datetime import datetime
 from PAGEPARSER import PageParser
+from validator import URLValidator
 import json
 
 class AdParser:
     def __init__(self, config):
         self.config = config
+        self.validator = URLValidator()
         self.results = []
     #Здесь начинается парсинг всех ссылок на сайты.
     def parse_urls(self, urls):
+        valid_urls = self.validator.normalize_urls(urls)
+        logger.info(f"Начинаем обработку {len(valid_urls)} валидных URL")
         results = []
-        
-        for url in urls:
+        for url in valid_urls:
             try:
                 result = self.parse_single_url(url)
                 results.append(result)
@@ -34,6 +37,7 @@ class AdParser:
         logger.info(f"Начинаем парсинг: {url}")
         result = {
             'url': url,
+            'domain': self.validator.extract_domain(url),
             'timestamp': datetime.now().isoformat(),
             'success': False,
             'ads_count': 0,

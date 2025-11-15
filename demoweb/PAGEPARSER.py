@@ -187,15 +187,15 @@ class PageParser:
         ads_click = []
         elements = self.elements()
 
+        try:
+            overlaying_element = self.driver.find_element(By.CSS_SELECTOR, "div.widgets__b-slide")
+            self.driver.execute_script("arguments[0].style.visibility='hidden'", overlaying_element)
+        except NoSuchElementException:
+            logger.info("Нижний виджет отсутствует") 
+
         for element in elements:
             try:
-                time.sleep(3)
-                try:
-                    overlaying_element = self.driver.find_element(By.CSS_SELECTOR, "div.widgets__b-slide")
-                    self.driver.execute_script("arguments[0].style.visibility='hidden'", overlaying_element)
-                except NoSuchElementException:
-                    logger.info("Нижний виджет отсутствует")               
-
+                time.sleep(3)       
                 ActionChains(self.driver).move_to_element_with_offset(element, -20, -10).click().perform()
 
                 WebDriverWait(self.driver, 15).until(EC.number_of_windows_to_be(2))

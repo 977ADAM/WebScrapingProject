@@ -74,8 +74,25 @@ class PageParser:
             logger.error(f"Ошибка загрузки страницы {url}: {e}")
             return False
 
-    def detect_ads(self):
-        elements = self.elements()
+    def elements(self):
+        filter_elements = []
+        seen = set()
+        try:
+            for selector in self.AD_SELECTORS:
+
+                elements = self.driver.find_elements("xpath", selector)
+                
+                for element in elements:
+                    if element.id not in seen and element.is_displayed():
+                        seen.add(element.id)
+                        filter_elements.append(element)
+
+        except Exception as e:
+            logger.error(f"Ошибка при обнаружении элемента: {e}")
+
+        return filter_elements
+
+    def detect_ads(self, elements):
         result = []
         for element in elements:
             try:
@@ -96,28 +113,10 @@ class PageParser:
 
         return result
 
-    def elements(self):
-        filter_elements = []
-        seen = set()
-        try:
-            for selector in self.AD_SELECTORS:
-                
-                elements = self.driver.find_elements(By.XPATH, selector)
-                
-                for element in elements:
-                    if element.id not in seen and element.is_displayed():
-                        seen.add(element.id)
-                        filter_elements.append(element)
-
-            return filter_elements
-        
-        except Exception as e:
-            logger.error(f"Ошибка при обнаружении элемента: {e}")
-
-    def screenshots_elements(self, screenshots_dir):
+    def screenshots_elements(self, screenshots_dir, elements):
         try:
             logger.info("Создание скриншотов реклам")
-            elemints = self.elements()
+
             try:
                 overlaying_element = self.driver.find_element(By.CSS_SELECTOR, "div.widgets__b-slide")
                 self.driver.execute_script("arguments[0].style.visibility='hidden'", overlaying_element)
@@ -125,7 +124,7 @@ class PageParser:
                 logger.info("Нижний виджет отсутствует")
 
             
-            for element in elemints:
+            for element in elements:
                 element.screenshot(f"{screenshots_dir}/screenshot{element.id}.png")
                 time.sleep(2)
         except Exception as e:
@@ -145,13 +144,13 @@ class PageParser:
             logger.error(f"Ошибка при захвате скриншота всей страницы: {e}")
         return output_path
 
-    def annotate_screenshot_full_page(self, capture_screenshot_full_page, screenshots_dir):
+    def annotate_screenshot_full_page(self, capture_screenshot_full_page, screenshots_dir, elements):
         """Aннотирование скриншота всей страницы"""
         try:
             logger.info("Aннотирование скриншота всей страницы")
             with Image.open(capture_screenshot_full_page) as amg:
                 draw = ImageDraw.Draw(amg)
-                elements = self.elements()
+
                 for element in elements:
                     draw.rectangle([
                         element.location['x'],
@@ -171,21 +170,21 @@ class PageParser:
         except Exception as e:
             logger.error(f"Ошибка при аннотировании скриншота всей страницы: {e}")
 
-    def screenshots(self):
+    def screenshots(self, elements):
         """Запуск для скриншота всей страницы и аннотирования ее"""
         script_path = os.path.abspath(__file__)
         dirname = os.path.dirname(script_path)
         screenshots_dir = os.path.join(dirname, "screenshots")
         os.makedirs(screenshots_dir, exist_ok=True)
 
-        #self.screenshots_elements(screenshots_dir)
+        #self.screenshots_elements(screenshots_dir, elements)
         screenshot_path = self.capture_screenshot_full_page(screenshots_dir)
-        self.annotate_screenshot_full_page(screenshot_path, screenshots_dir)
+        self.annotate_screenshot_full_page(screenshot_path, screenshots_dir, elements)
 
-    def click_elements(self):
+    def click_elements(self, elements):
         main_window = self.driver.current_window_handle
         ads_click = []
-        elements = self.elements()
+
 
         try:
             overlaying_element = self.driver.find_element(By.CSS_SELECTOR, "div.widgets__b-slide")

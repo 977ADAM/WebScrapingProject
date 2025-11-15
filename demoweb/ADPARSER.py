@@ -44,10 +44,11 @@ class AdParser:
             if not parser.load_page(url):
                 result['error'] = 'Failed to load page'
                 return result
-            
-            selenium_ads = parser.detect_ads()
-            parser.screenshots()
-            result_click_elements = parser.click_elements()
+            elements = parser.elements()
+
+            selenium_ads = parser.detect_ads(elements)
+            parser.screenshots(elements)
+            result_click_elements = parser.click_elements(elements)
             
             result['ads_click'] = result_click_elements
             result['ads'] = selenium_ads

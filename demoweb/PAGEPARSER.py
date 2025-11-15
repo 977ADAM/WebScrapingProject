@@ -194,15 +194,7 @@ class PageParser:
                     overlaying_element = self.driver.find_element(By.CSS_SELECTOR, "div.widgets__b-slide")
                     self.driver.execute_script("arguments[0].style.visibility='hidden'", overlaying_element)
                 except NoSuchElementException:
-                    logger.info("Нижний виджет отсутствует")
-                try:
-                    pysh = self.driver.find_element(By.XPATH, "//div[@class='modal__close']")
-                except NoSuchElementException:
-                    pass
-
-                if pysh.is_displayed():
-                    ActionChains(self.driver).click(pysh).perform()
-                    time.sleep(3)                
+                    logger.info("Нижний виджет отсутствует")               
 
                 ActionChains(self.driver).move_to_element_with_offset(element, -20, -10).click().perform()
 

@@ -182,21 +182,20 @@ class PageParser:
         self.annotate_screenshot_full_page(screenshot_path, screenshots_dir, elements)
 
     def click_elements(self, elements):
+        logger.info("Начинаем клики по рекламным элементам")
         main_window = self.driver.current_window_handle
         ads_click = []
-
-
         try:
             overlaying_element = self.driver.find_element(By.CSS_SELECTOR, "div.widgets__b-slide")
             self.driver.execute_script("arguments[0].style.visibility='hidden'", overlaying_element)
         except NoSuchElementException:
-            logger.info("Нижний виджет отсутствует") 
+            pass
 
-        for element in elements:
+        for i, element in enumerate(elements, start=1):
             try:
-                time.sleep(3)       
+                time.sleep(3)
                 ActionChains(self.driver).move_to_element_with_offset(element, -20, -10).click().perform()
-
+                logger.info(f"Клик по {i} элементу")
                 WebDriverWait(self.driver, 15).until(EC.number_of_windows_to_be(2))
                 
                 new_window = [window for window in self.driver.window_handles if window != main_window][0]
@@ -217,7 +216,7 @@ class PageParser:
                 self.driver.close()
                 self.driver.switch_to.window(main_window)
             except Exception as e:
-                logger.error(f"Не удолось кликнуть: {e}")
+                logger.error(f"Не удолось кликнуть по {i} элементу: {e}")
                 continue
 
             ads_click.extend(ad_data)

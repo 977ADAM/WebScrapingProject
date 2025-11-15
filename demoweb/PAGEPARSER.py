@@ -4,7 +4,7 @@ from PIL import Image, ImageDraw
 from urllib.parse import urlparse, parse_qs
 from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
-from selenium.common.exceptions import NoSuchElementException, ElementClickInterceptedException
+from selenium.common.exceptions import NoSuchElementException, ElementClickInterceptedException, TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support import expected_conditions as EC
@@ -64,15 +64,32 @@ class PageParser:
         try:
             logger.info(f"Загрузка страницы: {url}")
             self.driver.get(url)
-            WebDriverWait(self.driver, 20).until(
+            WebDriverWait(self.driver, 15).until(
                 EC.presence_of_element_located((By.TAG_NAME, "body"))
             )
-            time.sleep(3)
+            self.scroll_page()
             logger.info(f"Страница успешно загружена: {url}")
             return True
         except Exception as e:
             logger.error(f"Ошибка загрузки страницы {url}: {e}")
             return False
+
+    def scroll_page(self):
+        page_height = self.driver.execute_script("return document.body.scrollHeight")
+        scroll_steps = 20
+        scroll_step = page_height / scroll_steps
+        
+        for i in range(scroll_steps):
+            self.driver.execute_script(f"window.scrollTo(0, {scroll_step * (i + 1)});")
+            time.sleep(0.7)
+        
+        time.sleep(1)
+        
+        for i in range(scroll_steps, 0, -1):
+            self.driver.execute_script(f"window.scrollTo(0, {scroll_step * i});")
+            time.sleep(0.7)
+        
+        self.driver.execute_script("window.scrollTo(0, 0);")
 
     def elements(self):
         filter_elements = []
@@ -204,7 +221,7 @@ class PageParser:
 
                 current_url = self.driver.current_url
 
-                utm_data = self.extract_utm_params(current_url)
+                utm_data = self.extract_utm_params(current_url, i)
 
                 ad_data = [{
                     "id": element.id,
@@ -215,6 +232,10 @@ class PageParser:
 
                 self.driver.close()
                 self.driver.switch_to.window(main_window)
+                
+            except TimeoutException as e:
+                logger.error(f"Страница {i} не рагрузилась: {e}")
+                continue
             except Exception as e:
                 logger.error(f"Не удолось кликнуть по {i} элементу: {e}")
                 continue
@@ -223,9 +244,10 @@ class PageParser:
 
         return ads_click
     
-    def extract_utm_params(self, url):
+    def extract_utm_params(self, url, i):
         """Извлекает UTM-метки из URL"""
         try:
+            logger.info(f"Извлекает UTM-метки из URL элемента {i}")
             parsed_url = urlparse(url)
             query_params = parse_qs(parsed_url.query)
             utm_params = {}

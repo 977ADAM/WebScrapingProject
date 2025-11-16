@@ -3,16 +3,17 @@ import os
 import json
 import csv
 from datetime import datetime
-
-from LOGI import logger
 from CONFIG import AdParserConfig
 from validator import URLValidator
+from my_logger import get_logger
+logger = get_logger()
 
 class ReportManager:
     def __init__(self, config):
         self.config = config or AdParserConfig()
         self.validator = URLValidator()
         self.base_output_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "outputs")
+        self.dict_directories = {}
         self.ensure_directories()
     
     def ensure_directories(self):
@@ -22,7 +23,12 @@ class ReportManager:
             "logs"
         ]
         for directorie in directories:
-            os.makedirs(os.path.join(self.base_output_dir, directorie), exist_ok=True)
+
+            directorie_path = os.path.join(self.base_output_dir, directorie)
+
+            os.makedirs(directorie_path, exist_ok=True)
+
+            self.dict_directories[directorie] = directorie_path
 
     def create_url_folder(self, url):
         """Создание папки для конкретного URL"""
@@ -30,7 +36,7 @@ class ReportManager:
 
         domain_clean = self.sanitize_filename(domain)
         
-        url_folder = f"{self.base_output_dir}/reports/{domain_clean}"
+        url_folder = os.path.join(self.dict_directories["reports"], domain_clean)
         
         os.makedirs(url_folder, exist_ok=True)
 
@@ -76,3 +82,6 @@ class ReportManager:
         
         logger.info(f"JSON отчет сохранен: {filename}")
         return filename
+
+    def get_path_log(self):
+        return self.dict_directories["logs"]

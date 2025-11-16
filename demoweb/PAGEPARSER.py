@@ -10,10 +10,10 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-from LOGI import logger
 from CONFIG import AdParserConfig
 from fake_useragent import UserAgent
-
+from my_logger import get_logger
+logger = get_logger()
 
 class PageParser:
     def __init__(self, config):

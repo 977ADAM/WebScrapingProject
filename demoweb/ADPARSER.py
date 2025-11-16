@@ -1,12 +1,12 @@
 import os
 import time
-from LOGI import logger
 from CONFIG import AdParserConfig
 from datetime import datetime
 from PAGEPARSER import PageParser
 from validator import URLValidator
 from report_manager import ReportManager
-
+from my_logger import get_logger
+logger = get_logger()
 
 class AdParser:
     def __init__(self, config):

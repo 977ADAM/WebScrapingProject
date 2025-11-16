@@ -4,6 +4,7 @@ import sys
 from datetime import datetime
 import os
 
+from report_manager import ReportManager
 
 def setup_logger(name = "ad_parser"):
     """Настройка логгера для приложения"""

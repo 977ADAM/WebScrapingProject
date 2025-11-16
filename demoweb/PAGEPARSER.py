@@ -17,7 +17,7 @@ from fake_useragent import UserAgent
 
 class PageParser:
     def __init__(self, config):
-        self.config = config or AdParserConfig
+        self.config = config or AdParserConfig()
         self.driver = None
         self.setup_driver()
 
@@ -69,6 +69,7 @@ class PageParser:
                 EC.presence_of_element_located((By.TAG_NAME, "body"))
             )
             self.scroll_page()
+            self.get_cookies()
             logger.info(f"Страница успешно загружена: {url}")
             return True
         except Exception as e:

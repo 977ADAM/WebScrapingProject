@@ -29,6 +29,11 @@ class URLValidator:
     @staticmethod
     def extract_domain(url: str) -> Optional[str]:
         try:
-            return urlparse(url).netloc
-        except Exception:
+            parsed = urlparse(url)
+            domain = parsed.netloc
+            if domain.startswith('www.'):
+                domain = domain[4:]
+            return domain
+        except Exception as e:
+            logger.warning(f"Ошибка извлечения домена из {url}: {e}")
             return None

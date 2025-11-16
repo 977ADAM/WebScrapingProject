@@ -21,4 +21,6 @@ class AdParserConfig:
     ANNOTATION_THICKNESS: int = 3
     
     # Настройки отчетов
+    FOLDER_TIMESTAMP_FORMAT: str = "%Y%m%d_%H%M%S"
+    INCLUDE_DOMAIN_IN_FOLDER: bool = True
     OUTPUT_FORMATS: List[str] = None

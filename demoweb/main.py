@@ -2,8 +2,7 @@ import sys
 import os
 from ADPARSER import AdParser
 from CONFIG import AdParserConfig
-from my_logger import get_logger
-logger = get_logger()
+from LOGI import logger
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 

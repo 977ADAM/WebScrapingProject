@@ -4,7 +4,7 @@ import json
 from CONFIG import AdParserConfig
 from datetime import datetime
 from PAGEPARSER import PageParser
-from validator import URLValidator
+from VALIDATOR import URLValidator
 from LOGI import logger
 
 class AdParser:
@@ -64,7 +64,7 @@ class AdParser:
             logger.info(f"Парсинг завершен: {url} - найдено {len(selenium_ads)} рекламных элементов")
         
         return result
-    #Создание отчета в нужном формате.
+
     def generate_report(self):
         """Генерация отчета"""
         if not self.results:
@@ -78,7 +78,7 @@ class AdParser:
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         return self._generate_json_report(timestamp, report_dir)
-    #Отчет в JSON формате
+
     def _generate_json_report(self, timestamp, report_dir):
         """Генерация JSON отчета"""
         filename = f"{report_dir}/ad_report.json"

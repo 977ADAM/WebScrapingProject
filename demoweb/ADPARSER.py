@@ -60,6 +60,8 @@ class AdParser:
             if not parser.load_page(url):
                 result['error'] = 'Failed to load page'
                 return result
+            
+            parser.get_cookies(base_path)
             elements = parser.elements()
 
             selenium_ads = parser.detect_ads(elements)

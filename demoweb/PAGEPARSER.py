@@ -68,7 +68,6 @@ class PageParser:
                 EC.presence_of_element_located((By.TAG_NAME, "body"))
             )
             self.scroll_page()
-            self.get_cookies()
             logger.info(f"Страница успешно загружена: {url}")
             return True
         except Exception as e:
@@ -92,14 +91,15 @@ class PageParser:
         
         self.driver.execute_script("window.scrollTo(0, 0);")
 
-    def get_cookies(self):
+    def get_cookies(self, base_path_cookies):
         """Получаем cookies"""
-        cookies_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cookies")
+        cookies_dir = os.path.join(base_path_cookies, "cookies")
         os.makedirs(cookies_dir, exist_ok=True)
 
         cookies = self.driver.get_cookies()
         logger.info("Получаем cookies")
-        pickle.dump(cookies, open(f"{cookies_dir}/cookies.pkl", "wb"))
+
+        pickle.dump(cookies, open(os.path.join(cookies_dir, "cookies.pkl"), "wb"))
 
     def add_cookies(self):
         cookies_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cookies")

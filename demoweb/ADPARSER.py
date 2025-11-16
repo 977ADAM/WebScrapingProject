@@ -5,14 +5,12 @@ from CONFIG import AdParserConfig
 from datetime import datetime
 from PAGEPARSER import PageParser
 from validator import URLValidator
-from ignored.report_manager import ReportManager
 from LOGI import logger
 
 class AdParser:
     def __init__(self, config):
         self.config = config or AdParserConfig()
         self.validator = URLValidator()
-        self.report_manager = ReportManager(self.config)
         self.results = []
 
     def parse_urls(self, urls):
@@ -24,10 +22,6 @@ class AdParser:
         for url in valid_urls:
             try:
                 result = self.parse_single_url(url)
-
-                folder_path = self.report_manager.create_url_folder(url)
-                self.report_manager.generate_report(result, folder_path)
-
                 results.append(result)
 
             except Exception as e:

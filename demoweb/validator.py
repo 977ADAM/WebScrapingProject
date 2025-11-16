@@ -1,8 +1,7 @@
 import re
 from urllib.parse import urlparse
 from typing import List, Optional
-from my_logger import get_logger
-logger = get_logger()
+from LOGI import logger
 
 class URLValidator:
     @staticmethod

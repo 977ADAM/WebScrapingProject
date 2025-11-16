@@ -1,26 +1,34 @@
 import os
 import time
-from LOGI import logger
+from CONFIG import AdParserConfig
 from datetime import datetime
 from PAGEPARSER import PageParser
 from validator import URLValidator
-import json
+from ignored.report_manager import ReportManager
+
 
 class AdParser:
     def __init__(self, config):
-        self.config = config
+        self.config = config or AdParserConfig()
         self.validator = URLValidator()
+        self.report_manager = ReportManager(self.config)
         self.results = []
-    #Здесь начинается парсинг всех ссылок на сайты.
+
     def parse_urls(self, urls):
         valid_urls = self.validator.normalize_urls(urls)
         logger.info(f"Начинаем обработку {len(valid_urls)} валидных URL")
         results = []
+
+
         for url in valid_urls:
             try:
                 result = self.parse_single_url(url)
+
+                folder_path = self.report_manager.create_url_folder(url)
+                self.report_manager.generate_report(result, folder_path)
+
                 results.append(result)
-                
+
             except Exception as e:
                 logger.error(f"Ошибка обработки URL {url}: {e}")
                 results.append({
@@ -30,9 +38,8 @@ class AdParser:
                     'timestamp': datetime.now().isoformat()
                 })
         
-        self.results = results
         return results
-    #Парсинг одной ссылки.
+
     def parse_single_url(self, url):
         logger.info(f"Начинаем парсинг: {url}")
         result = {
@@ -52,9 +59,9 @@ class AdParser:
 
             selenium_ads = parser.detect_ads(elements)
             parser.screenshots(elements)
-            result_click_elements = parser.click_elements(elements)
+            #result_click_elements = parser.click_elements(elements)
             
-            result['ads_click'] = result_click_elements
+            #result['ads_click'] = result_click_elements
             result['ads'] = selenium_ads
             result['ads_count'] = len(selenium_ads)
             result['success'] = True

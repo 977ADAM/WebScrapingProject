@@ -4,7 +4,6 @@ import sys
 from datetime import datetime
 import os
 
-
 def setup_logger(name = "ad_parser"):
     """Настройка логгера для приложения"""
     script_path = os.path.abspath(__file__)

@@ -32,7 +32,7 @@ class AdParser:
                     'error': str(e),
                     'timestamp': datetime.now().isoformat()
                 })
-        
+        self.results = results
         return results
 
     def parse_single_url(self, url):

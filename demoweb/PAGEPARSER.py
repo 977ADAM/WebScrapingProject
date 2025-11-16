@@ -82,13 +82,13 @@ class PageParser:
         
         for i in range(scroll_steps):
             self.driver.execute_script(f"window.scrollTo(0, {scroll_step * (i + 1)});")
-            time.sleep(0.7)
+            time.sleep(0.5)
         
         time.sleep(1)
         
         for i in range(scroll_steps, 0, -1):
             self.driver.execute_script(f"window.scrollTo(0, {scroll_step * i});")
-            time.sleep(0.7)
+            time.sleep(0.5)
         
         self.driver.execute_script("window.scrollTo(0, 0);")
 

@@ -210,11 +210,10 @@ class PageParser:
         except Exception as e:
             logger.error(f"Ошибка при аннотировании скриншота всей страницы: {e}")
 
-    def screenshots(self, elements):
+    def screenshots(self, elements, base_path):
         """Запуск для скриншота всей страницы и аннотирования ее"""
-        script_path = os.path.abspath(__file__)
-        dirname = os.path.dirname(script_path)
-        screenshots_dir = os.path.join(dirname, "screenshots")
+
+        screenshots_dir = os.path.join(base_path, "screenshots")
         os.makedirs(screenshots_dir, exist_ok=True)
 
         #self.screenshots_elements(screenshots_dir, elements)

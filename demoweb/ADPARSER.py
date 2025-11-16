@@ -27,9 +27,9 @@ class AdParser:
 
         for url in valid_urls:
             try:
-                result = self.parse_single_url(url)
-
                 path = self.folder_reporst(url)
+
+                result = self.parse_single_url(url, path)
 
                 self.generate_report(path, result)
 
@@ -46,12 +46,11 @@ class AdParser:
         self.results = results
         return results
 
-    def parse_single_url(self, url):
+    def parse_single_url(self, url, base_path):
         logger.info(f"Начинаем парсинг: {url}")
         result = {
             'url': url,
             'domain': self.validator.extract_domain(url),
-            'timestamp': datetime.now().isoformat(),
             'success': False,
             'ads_count': 0,
             'ads': [],
@@ -64,7 +63,7 @@ class AdParser:
             elements = parser.elements()
 
             selenium_ads = parser.detect_ads(elements)
-            parser.screenshots(elements)
+            parser.screenshots(elements, base_path)
             #result_click_elements = parser.click_elements(elements)
             
             #result['ads_click'] = result_click_elements
@@ -81,11 +80,6 @@ class AdParser:
         if not result:
             logger.warning("Нет данных для отчета")
             return ""
-
-        script_path = os.path.abspath(__file__)
-        dirname = os.path.dirname(script_path)
-        report_dir = os.path.join(dirname, "reports")
-        os.makedirs(report_dir, exist_ok=True)
 
         data_dir = os.path.join(base_path, "data")
         os.makedirs(data_dir, exist_ok=True)

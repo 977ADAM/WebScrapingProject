@@ -69,7 +69,7 @@ class SimpleLogger:
     
     def _setup_file_handler(self):
         """Настройка обработчика для файла с ротацией"""
-        # Создаем директорию для логов
+        
         log_dir = Path("logs")
         log_dir.mkdir(exist_ok=True)
         
@@ -133,7 +133,6 @@ class SimpleLogger:
         enhanced_msg = f"\n{border}\n{Colors.BOLD}{msg}{Colors.RESET}\n{border}"
         self._log_with_caller(logging.INFO, enhanced_msg, *args, **kwargs)
 
-# Глобальный экземпляр логгера
 _logger_instance: Optional[SimpleLogger] = None
 
 def setup_logger(name: str = "ad_parser", level: str = "INFO", log_to_file: bool = True) -> SimpleLogger:
@@ -149,7 +148,6 @@ def get_logger() -> SimpleLogger:
         _logger_instance = setup_logger()
     return _logger_instance
 
-# Функции для удобного использования
 def debug(msg: str, *args, **kwargs):
     get_logger().debug(msg, *args, **kwargs)
 
@@ -174,7 +172,6 @@ def progress(msg: str, *args, **kwargs):
 def section(msg: str, *args, **kwargs):
     get_logger().section(msg, *args, **kwargs)
 
-# Декоратор для логирования вызовов функций
 def log_function_call(level: str = "DEBUG"):
     """Декоратор для логирования вызовов функций и их результатов"""
     def decorator(func):
@@ -200,7 +197,6 @@ def log_function_call(level: str = "DEBUG"):
         
         return wrapper
     return decorator
-
 
 class Timer:
     """Контекстный менеджер для измерения времени выполнения блока кода"""

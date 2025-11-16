@@ -2,6 +2,11 @@
 *.log
 *.json
 *.png
+
+
+
+cookies/
+*.pkl
 # Временные файлы
 *.tmp
 *.temp

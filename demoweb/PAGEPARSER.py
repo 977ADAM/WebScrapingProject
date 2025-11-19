@@ -28,8 +28,8 @@ class PageParser:
             ]
         
         self.selectors = [
-                ".//div[contains(@id, 'yandex_rtb_')]",
-                ".//div[contains(@id, 'adfox_')]"
+                ("xpath", ".//div[contains(@id, 'yandex_rtb_')]"),
+                ("xpath", ".//div[contains(@id, 'adfox_')]")
             ]
 
     def setup_driver(self):
@@ -140,27 +140,37 @@ class PageParser:
    
     def get_unique_elements(self, parent_elements: List[WebElement]) -> List[WebElement]:
         seen_ids = set()
-        unique_elements = []
-
+        result = []
+        potential_parents = []
+        
         for parent in parent_elements:
-            children_found = False
-
+            found_children = False
+        
             for selector in self.selectors:
                 try:
-                    children = parent.find_elements("xpath", selector)
-                    for child in children:
-                        if child.id not in seen_ids:
-                            seen_ids.add(child.id)
-                            unique_elements.append(child)
-                            children_found = True
+                    elements = parent.find_elements(*selector)
+                    for element in elements:
+                        element_id = element.id
+                        if element_id not in seen_ids:
+                            seen_ids.add(element_id)
+                            result.append(element)
+                            found_children = True
+                            if element_id == parent.id:
+                                found_children = True
+
                 except NoSuchElementException:
                     continue
-
-            if not children_found and parent.id not in seen_ids:
-                seen_ids.add(parent.id)
-                unique_elements.append(parent)
-
-        return unique_elements
+            
+            if not found_children and parent.id not in seen_ids:
+                potential_parents.append(parent)
+                    
+        for parent in potential_parents:
+            parent_id = parent.id
+            if parent_id not in seen_ids:
+                seen_ids.add(parent_id)
+                result.append(parent)
+            
+        return result
 
     def detect_ads(self, elements: list[WebElement]):
         result = []

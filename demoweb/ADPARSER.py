@@ -13,7 +13,6 @@ class AdParser:
         self.ensure_directories()
         self.result = []
         
-
     def ensure_directories(self):
         """Создание необходимых директорий"""
         os.makedirs(self.base_reports_dir, exist_ok=True)

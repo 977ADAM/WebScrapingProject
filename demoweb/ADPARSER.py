@@ -1,15 +1,13 @@
 import os
 import re
 import json
-from CONFIG import AdParserConfig
 from datetime import datetime
 from PAGEPARSER import PageParser
 from VALIDATOR import URLValidator
 from LOGI import logger
 
 class AdParser:
-    def __init__(self, config):
-        self.config = config or AdParserConfig()
+    def __init__(self):
         self.validator = URLValidator()
         self.base_reports_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "reports")
         self.ensure_directories()
@@ -56,7 +54,7 @@ class AdParser:
             'ads': [],
             'ads_click': [],
         }
-        with PageParser(self.config) as parser:
+        with PageParser() as parser:
             if not parser.load_page(url):
                 result['error'] = 'Failed to load page'
                 return result
@@ -105,7 +103,7 @@ class AdParser:
         return filename
      
     def folder_reporst(self, url):
-        timestamp = datetime.now().strftime(self.config.FOLDER_TIMESTAMP_FORMAT)
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         
         domain = self.validator.extract_domain(url) or "unknown"
         domain_clean = self.sanitize_filename(domain)
@@ -116,27 +114,6 @@ class AdParser:
         url_folder_timestamp = os.path.join(url_folder, name_timestamp)
         os.makedirs(url_folder_timestamp, exist_ok=True)
 
-        return url_folder_timestamp
-
-
-
-    def create_url_folder(self, url):
-        """Создание папки для конкретного URL"""
-        domain = self.validator.extract_domain(url) or "unknown"
-
-        domain_clean = self.sanitize_filename(domain)
-        
-        url_folder = os.path.join(self.dict_directories["reports"], domain_clean)
-        
-        os.makedirs(url_folder, exist_ok=True)
-
-        timestamp = datetime.now().strftime(self.config.FOLDER_TIMESTAMP_FORMAT)
-
-        url_folder_timestamp = f"{url_folder}/{domain_clean}_{timestamp}"
-
-        os.makedirs(url_folder_timestamp, exist_ok=True)
-
-        logger.info(f"Создана папка для отчета: {url_folder_timestamp}")
         return url_folder_timestamp
     
     def sanitize_filename(self, name):

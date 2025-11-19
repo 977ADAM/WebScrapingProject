@@ -1,6 +1,7 @@
 import time
 import os
 import pickle
+from typing import List
 from PIL import Image, ImageDraw
 from urllib.parse import urlparse, parse_qs
 from selenium import webdriver
@@ -10,21 +11,25 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-from CONFIG import AdParserConfig
+from selenium.webdriver.remote.webelement import WebElement
 from fake_useragent import UserAgent
 from LOGI import logger
 
 class PageParser:
-    def __init__(self, config):
-        self.config = config or AdParserConfig()
+    def __init__(self):
         self.driver = None
         self.setup_driver()
 
-        self.AD_SELECTORS = [
+        self.ad_selectors = [
                 "//div[contains(@class, 'yandex_rtb_')]",
                 "//div[contains(@id, 'yandex_rtb_')]",
                 "//div[contains(@id, 'adfox_')]",
                 "//div[contains(@id, 'begun_block_')]"
+            ]
+        
+        self.selectors = [
+                ".//div[contains(@id, 'yandex_rtb_')]",
+                ".//div[contains(@id, 'adfox_')]"
             ]
 
     def setup_driver(self):
@@ -32,10 +37,10 @@ class PageParser:
         try:
             chrome_options = Options()
             
-            if self.config.HEADLESS:
-                chrome_options.add_argument("--headless")
             
-            chrome_options.add_argument(f"--window-size={self.config.WINDOW_SIZE[0]},{self.config.WINDOW_SIZE[1]}")
+            chrome_options.add_argument("--headless")
+            
+            chrome_options.add_argument(f"--window-size=1920,1080")
             chrome_options.add_argument("--no-sandbox")
             chrome_options.add_argument("--incognito")
             chrome_options.add_argument("--disable-dev-shm-usage")
@@ -51,8 +56,8 @@ class PageParser:
             self.driver = webdriver.Chrome(options=chrome_options)
             
             # Устанавливаем таймауты
-            self.driver.set_page_load_timeout(self.config.PAGE_LOAD_TIMEOUT)
-            self.driver.set_script_timeout(self.config.SCRIPT_TIMEOUT)
+            self.driver.set_page_load_timeout(30)
+            self.driver.set_script_timeout(30)
             
             logger.info("WebDriver успешно инициализирован")
             
@@ -114,11 +119,11 @@ class PageParser:
 
         self.driver.refresh()
 
-    def elements(self):
-        filter_elements = []
+    def elements(self) -> list[WebElement]:
+        filter_elements: list[WebElement] = []
         seen = set()
         try:
-            for selector in self.AD_SELECTORS:
+            for selector in self.ad_selectors:
 
                 elements = self.driver.find_elements("xpath", selector)
                 
@@ -127,16 +132,41 @@ class PageParser:
                         seen.add(element.id)
                         filter_elements.append(element)
 
+            unique_elements = self.get_unique_elements(parent_elements=filter_elements)
+            return unique_elements
+        
         except Exception as e:
             logger.error(f"Ошибка при обнаружении элемента: {e}")
+   
+    def get_unique_elements(self, parent_elements: List[WebElement]) -> List[WebElement]:
+        seen_ids = set()
+        unique_elements = []
 
-        return filter_elements
+        for parent in parent_elements:
+            children_found = False
 
-    def detect_ads(self, elements):
+            for selector in self.selectors:
+                try:
+                    children = parent.find_elements(By.XPATH, selector)
+                    for child in children:
+                        if child.id not in seen_ids:
+                            seen_ids.add(child.id)
+                            unique_elements.append(child)
+                            children_found = True
+                except NoSuchElementException:
+                    continue
+
+            if not children_found and parent.id not in seen_ids:
+                seen_ids.add(parent.id)
+                unique_elements.append(parent)
+
+        return unique_elements
+
+    def detect_ads(self, elements: list[WebElement]):
         result = []
         for element in elements:
             try:
-                data = [{
+                data = {
                     'element': element.id,
                     'tag': element.tag_name,
                     'classes': element.get_attribute('class'),
@@ -144,7 +174,7 @@ class PageParser:
                     'location': element.location,
                     'size': element.size,
                     'is_displayed': element.is_displayed()
-                    }]
+                    }
                 
                 result.append(data)
 
@@ -177,9 +207,9 @@ class PageParser:
             logger.info("Создание скриншота всей страницы")
             self.driver.execute_script("window.scrollTo(0, 0);")
             total_height = self.driver.execute_script("return document.documentElement.scrollHeight")
-            self.driver.set_window_size(self.config.WINDOW_SIZE[0], total_height+100)
+            self.driver.set_window_size(1920, total_height+100)
             self.driver.save_screenshot(output_path)
-            self.driver.set_window_size(self.config.WINDOW_SIZE[0],self.config.WINDOW_SIZE[1])
+            self.driver.set_window_size(1920, 1080)
         except Exception as e:
             logger.error(f"Ошибка при захвате скриншота всей страницы: {e}")
         return output_path

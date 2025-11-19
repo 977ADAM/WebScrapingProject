@@ -1,27 +1,24 @@
 import sys
 import os
 from ADPARSER import AdParser
-from CONFIG import AdParserConfig
 from LOGI import logger
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 def main():
-    BASE_URL = ["https://www.m24.ru/"]
-
-    config = AdParserConfig(HEADLESS=True)
+    BASE_URLS = ["https://www.m24.ru/"]
     
-    parser = AdParser(config)
+    parser = AdParser()
 
     try:
         logger.info("Запуск парсинга рекламных элементов...")
-        results = parser.parse_urls(BASE_URL)
+        results = parser.parse_urls(BASE_URLS)
 
         successful = sum(1 for r in results if r.get('success'))
         total_ads = sum(r.get('ads_count', 0) for r in results)
 
         logger.info(f"Парсинг завершен!")
-        logger.info(f"Успешно обработано: {successful}/{len(BASE_URL)}")
+        logger.info(f"Успешно обработано: {successful}/{len(BASE_URLS)}")
         logger.info(f"Всего найдено рекламных элементов: {total_ads}")
 
     except Exception as e:

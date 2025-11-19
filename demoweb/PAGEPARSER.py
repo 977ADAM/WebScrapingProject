@@ -147,7 +147,7 @@ class PageParser:
 
             for selector in self.selectors:
                 try:
-                    children = parent.find_elements(By.XPATH, selector)
+                    children = parent.find_elements("xpath", selector)
                     for child in children:
                         if child.id not in seen_ids:
                             seen_ids.add(child.id)

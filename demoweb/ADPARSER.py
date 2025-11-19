@@ -11,7 +11,8 @@ class AdParser:
         self.validator = URLValidator()
         self.base_reports_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "reports")
         self.ensure_directories()
-        self.results = []
+        self.result = []
+        
 
     def ensure_directories(self):
         """Создание необходимых директорий"""
@@ -29,8 +30,6 @@ class AdParser:
 
                 result = self.parse_single_url(url, path)
 
-                self.generate_report(path, result)
-
                 results.append(result)
 
             except Exception as e:
@@ -41,7 +40,7 @@ class AdParser:
                     'error': str(e),
                     'timestamp': datetime.now().isoformat()
                 })
-        self.results = results
+        
         return results
 
     def parse_single_url(self, url, base_path):
@@ -72,28 +71,30 @@ class AdParser:
             result['success'] = True
             
             logger.info(f"Парсинг завершен: {url} - найдено {len(selenium_ads)} рекламных элементов")
-        
+
+        self.result = result
+        self.generate_report(base_path)
+
         return result
 
-    def generate_report(self, base_path, result):
+    def generate_report(self, base_path):
         """Генерация отчета"""
-        if not result:
+        if not self.result:
             logger.warning("Нет данных для отчета")
             return ""
 
         data_dir = os.path.join(base_path, "data")
         os.makedirs(data_dir, exist_ok=True)
 
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        return self._generate_json_report(timestamp, data_dir, result)
+        return self._generate_json_report(data_dir)
 
-    def _generate_json_report(self, timestamp, report_dir, result):
+    def _generate_json_report(self, report_dir):
         """Генерация JSON отчета"""
         filename = os.path.join(report_dir, "ad_report.json")
         
         report_data = {
             'generated_at': datetime.now().isoformat(),
-            'results': result
+            'results': self.result
         }
         
         with open(filename, 'w', encoding='utf-8') as f:

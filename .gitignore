@@ -2,7 +2,7 @@
 *.log
 *.json
 *.png
-
+*.csv
 
 
 cookies/

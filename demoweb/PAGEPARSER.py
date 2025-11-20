@@ -193,6 +193,35 @@ class PageParser:
 
         return result
 
+    def iframe(self, elements: list[WebElement]):
+        logger.info("Обработка iframe если есть")
+        result = []
+        
+        for element in elements:
+            try:
+                iframe = element.find_element("xpath", ".//iframe")
+                logger.info("Обработка iframe")
+                self.driver.switch_to.frame(iframe)
+                
+                iframe_text_element = self.driver.find_element("xpath", "//body").text
+
+                iframe_data = {
+                    "id": element.id,
+                    "title": self.driver.title,
+                    "text": iframe_text_element
+                }
+                self.driver.switch_to.default_content()
+                result.append(iframe_data)
+
+            except NoSuchElementException:
+                continue
+
+            except Exception as e:
+                logger.error(f"Ошибка при обработке iframe: {e}")
+
+    
+        return result
+
     def screenshots_elements(self, screenshots_dir, elements):
         try:
             logger.info("Создание скриншотов реклам")
@@ -212,7 +241,7 @@ class PageParser:
 
     def capture_screenshot_full_page(self, screenshots_dir):
         """Захват скриншота всей страницы"""
-        output_path = f"{screenshots_dir}/full_screenshot{self.driver.name}.png"
+        output_path = f"{screenshots_dir}/full_screenshot.png"
         try:
             logger.info("Создание скриншота всей страницы")
             self.driver.execute_script("window.scrollTo(0, 0);")
@@ -224,7 +253,7 @@ class PageParser:
             logger.error(f"Ошибка при захвате скриншота всей страницы: {e}")
         return output_path
 
-    def annotate_screenshot_full_page(self, capture_screenshot_full_page, screenshots_dir, elements):
+    def annotate_screenshot_full_page(self, capture_screenshot_full_page, screenshots_dir, elements: list[WebElement]):
         """Aннотирование скриншота всей страницы"""
         try:
             logger.info("Aннотирование скриншота всей страницы")

@@ -1,6 +1,9 @@
 import os
 import re
 import json
+import csv
+from tabulate import tabulate
+import pandas as pd
 from datetime import datetime
 from PAGEPARSER import PageParser
 from VALIDATOR import URLValidator
@@ -51,6 +54,7 @@ class AdParser:
             'ads_count': 0,
             'ads': [],
             'ads_click': [],
+            'iframe': []
         }
         with PageParser() as parser:
             if not parser.load_page(url):
@@ -61,6 +65,7 @@ class AdParser:
             elements = parser.elements()
 
             selenium_ads = parser.detect_ads(elements)
+            iframe = parser.iframe(elements)
             parser.screenshots(elements, base_path)
             #result_click_elements = parser.click_elements(elements)
             
@@ -68,15 +73,17 @@ class AdParser:
             result['ads'] = selenium_ads
             result['ads_count'] = len(selenium_ads)
             result['success'] = True
+            result['iframe'] = iframe
             
             logger.info(f"Парсинг завершен: {url} - найдено {len(selenium_ads)} рекламных элементов")
 
         self.result = result
-        self.generate_report(base_path)
+        self.generate_report(base_path, 'json')
+        self.generate_report(base_path, 'csv')
 
         return result
 
-    def generate_report(self, base_path):
+    def generate_report(self, base_path, format):
         """Генерация отчета"""
         if not self.result:
             logger.warning("Нет данных для отчета")
@@ -84,8 +91,14 @@ class AdParser:
 
         data_dir = os.path.join(base_path, "data")
         os.makedirs(data_dir, exist_ok=True)
-
-        return self._generate_json_report(data_dir)
+        
+        if format == 'json':
+            return self._generate_json_report(data_dir)
+        elif format == 'csv':
+            return self._generate_csv_report(data_dir)
+        else:
+            logger.error(f"Неподдерживаемый формат: {format}")
+            return ""
 
     def _generate_json_report(self, report_dir):
         """Генерация JSON отчета"""
@@ -102,6 +115,46 @@ class AdParser:
         logger.info(f"JSON отчет сохранен: {filename}")
         return filename
      
+    def _generate_csv_report(self, report_dir):
+        """Генерация CSV отчета"""
+        filename = os.path.join(report_dir, "ad_report.csv")
+        flat_data = []
+        base_info = {
+                'url': self.result.get('url', ''),
+                'domain': self.result.get('domain', ''),
+                'success': self.result.get('success', False),
+                'total_ads_found': self.result.get('ads_count', 0),
+            }
+        ads = self.result.get('ads', [])
+        for i, ad in enumerate(ads, start=1):
+            ad_data = base_info.copy()
+            ad_data.update({
+                    'ad_index': i,
+                    'element_id': ad.get('element', ''),
+                    'html_tag': ad.get('tag', ''),
+                    'classes': ad.get('classes', []),
+                    'id': ad.get('id', ''),
+                    'is_displayed': ad.get('is_displayed', True),
+                    'location_x': ad.get('location', {}).get('x', ''),
+                    'location_y': ad.get('location', {}).get('y', ''),
+                    'width': ad.get('size', {}).get('width', ''),
+                    'height': ad.get('size', {}).get('height', ''),
+                })
+            flat_data.append(ad_data)
+        df = pd.DataFrame(flat_data)
+        column_order = ['url', 'domain', 'success', 'total_ads_found',
+                        'ad_index', 'element_id', 'html_tag', 'classes',
+                        'id', 'is_displayed', 'location_x', 'location_y',
+                        'width', 'height']
+        existing_columns = [col for col in column_order if col in df.columns]
+        additional_columns = [col for col in df.columns if col not in column_order]
+        final_columns = existing_columns + additional_columns
+        df = df[final_columns]
+        table_str = tabulate(df, headers="keys", tablefmt="pipe", showindex=False)
+        with open(filename, "w", encoding="utf-8") as f:
+            f.write(table_str)
+        return filename
+
     def folder_reporst(self, url):
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         
